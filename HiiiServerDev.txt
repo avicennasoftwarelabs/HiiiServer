@@ -1,0 +1,13 @@
+     *************************
+        var clients[];
+        var  sourceToken=data.getToken();
+        var  targetToken=chooseTargetToken(sourceToken);
+         
+
+
+
+        send(targetToken,msg);
+
+
+
+        *************************
