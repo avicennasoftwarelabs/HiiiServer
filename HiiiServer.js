@@ -151,34 +151,33 @@ function getBuddy(client)
 
   
 
-  for (var i=0,l=clients.length; i<l; i++){  
+    for (var i=0,l=clients.length; i<l; i++){  
+            
+        if(clients[i].target===undefined){
+            if(client!==clients[i]){
+            unattached.push(i);
+          }
+         }
+
+     }   
+
+
+     if(unattached.length<1){
+           unattached.splice(0,unattached.length);
+      
+        return -1; 
+     }
+     else{
           
-      if(clients[i].target===undefined){
-          if(client!==clients[i]){
-          unattached.push(i);
-        }
-       }
 
-   }   
-
-
-   if(unattached.length<1){
-      unattached.splice(0,unattached.length);
-    
-      return -1; 
-   }
-   else{
+          randombuddy=Math.floor(Math.random()*unattached.length);
+          randombuddy=unattached[randombuddy];
+          unattached.splice(0,unattached.length);
         
+          return   randombuddy;
+     }
 
-        randombuddy=Math.floor(Math.random()*unattached.length);
-        console.log("secilen:"+ unattached[randombuddy]);
-        randombuddy=unattached[randombuddy];
-        unattached.splice(0,unattached.length);
-        console.log("unattached silindi:"+unattached.length);
-        return   randombuddy;
-   }
-
-  
+    
 
 
 }
