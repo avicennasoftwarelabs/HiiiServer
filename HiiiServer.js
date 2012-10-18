@@ -15,6 +15,7 @@ var net = require('net');
 
 // Keep track of the chat clients
 var clients=[];
+var unattached=[];
 
 
  
@@ -24,8 +25,12 @@ var server = net.createServer(function(c) { //'connection' listener
  
    // An id for this new incoming clients
    c.id=c.remotePort;
+   
+ 
+   
    clients.push(c) ;
-   console.log("Aktif kullanıcı sayısı:"+ clients.length);
+   
+  
   
 
   
@@ -33,7 +38,7 @@ var server = net.createServer(function(c) { //'connection' listener
    var index=0;
    clients.forEach(function (client) {
       index++;
-      console.log(index+"."+client.id);
+      
       
     });
    index=0;
@@ -41,19 +46,23 @@ var server = net.createServer(function(c) { //'connection' listener
 
    console.log(c.id +' connected');
 
-
+    
    
    c.on('end', function() {
 
+    clients[clients.indexOf(c)].target=null;
     clients.splice(clients.indexOf(c), 1);
+
     console.log(c.id +' disconnected');
   });
 
 
   c.on('data', function(data) {
           
-
+          console.log('data has come from'+c.id );
       
+               
+
           // when new data received, it may be one of theese possibilty, for the time being,pls modify if you think better solution or
           // some extra possiblty
 
@@ -62,25 +71,51 @@ var server = net.createServer(function(c) { //'connection' listener
 
         // Write the data back to the socket, the client will receive it as data from the server
         
+
        
-         foreachstop=0;
+         randombuddy=0;
+        
         // console.log("Aktif kullanıcı sayısı:"+ clients.length);
-  
+        
          if(clients.length<2){
-          c.write("Merhaba, sohbet etmek isteyen kimse yok.");
+          c.write("Sorry, we havent got any buddy to chat..");
        
           }
         else
         {
-          //clients[Math.round((Math.random()*clients.length)+1)].write("Seni sectim pikacu");
- 
-           
-            clients[getBuddy(c)].write(c.id+"-->"+data);
-           
-           var temp;
-         
           
-        
+         if(c.target!==undefined){
+
+          console.log("-----------------------");
+           console.log("Sender id:"+c.id);
+           console.log("Receiver id:"+c.target.id);
+    
+          c.target.write(data);
+
+         }
+         else{
+            randomclient=getBuddy(c);
+            
+           if(randomclient===-1){
+              c.write("Sorry, we havent got any buddy to chat..");
+           }
+           else{
+
+            console.log("istenen client:"+randomclient);
+            console.log(clients[randomclient]);
+            clients[randomclient].write(data);
+            
+            clients[randomclient].target=c; 
+           //c.target=clients.slice(randomclient,randomclient+1);
+              c.target=clients[randomclient];
+           
+              removeByValue(unattached,c);
+              removeByValue(unattached,clients[randomclient]);
+
+            }
+          }
+
+
         }
 
 
@@ -93,38 +128,57 @@ server.listen(PORT_HS,HOST_HS, function() { //'listening' listener
   console.log('server bound');
 });
 
+
+// this method remove an element from array by value
+function removeByValue(arr, val) {
+    for(var i=0; i<arr.length; i++) {
+        if(arr[i] == val) {
+            arr.splice(i, 1);
+            break;
+        }
+    }
+}
+
+
+//this method choose right person, who havent got any target 
 function getBuddy(client)
 {
-  foreachstop=Math.floor(Math.random()*clients.length);
+     
+     /* DECISION STEPS  auth: Mustafa last modified: 18.10.2012_v-01
+        1. Get clients who hasn't got target object
+        2. Choose a client index randomly 
+    */
 
-  if(DEV_MODE==='DEBUG'){
-           console.log("Random number generated:"+ foreachstop+"Clients count:"+clients.length); 
-           }
+  
 
- while (true)
-            {
+  for (var i=0,l=clients.length; i<l; i++){  
+          
+      if(clients[i].target===undefined){
+          if(client!==clients[i]){
+          unattached.push(i);
+        }
+       }
 
-              if(clients[foreachstop]===client)
-              {
-                if(DEV_MODE==='DEBUG'){
-                 console.log("random number:"+foreachstop+"new rumber will be generated due to collision"); 
-                 }
+   }   
 
-                foreachstop=Math.floor(Math.random()*clients.length);
 
-                if(DEV_MODE==='DEBUG'){
-                 console.log("new random number:"+foreachstop); 
-                 }
-              }
-              else{
-              
-               return foreachstop;
-               if(DEV_MODE==='DEBUG'){
-                 console.log("return random:"+foreachstop); 
-                 }
+   if(unattached.length<1){
+      unattached.splice(0,unattached.length);
+    
+      return -1; 
+   }
+   else{
+        
 
-             }
-            }
+        randombuddy=Math.floor(Math.random()*unattached.length);
+        console.log("secilen:"+ unattached[randombuddy]);
+        randombuddy=unattached[randombuddy];
+        unattached.splice(0,unattached.length);
+        console.log("unattached silindi:"+unattached.length);
+        return   randombuddy;
+   }
 
-        return null;    
+  
+
+
 }
